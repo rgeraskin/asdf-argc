@@ -36,13 +36,30 @@ list_all_versions() {
 	list_github_tags
 }
 
+guess_asset() {
+	local os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+	local arch="$(uname -m | tr '[:upper:]' '[:lower:]')"
+
+	if [ "$os" = "darwin" ]; then
+		os="apple-darwin"
+	elif [ "$os" = "linux" ]; then
+		os="unknown-linux-musl"
+	fi
+
+	if [ "$arch" = "arm64" ]; then
+		arch="aarch64"
+	fi
+
+	echo "$arch-$os"
+}
+
 download_release() {
 	local version filename url
 	version="$1"
 	filename="$2"
 
-	# TODO: Adapt the release URL convention for argc
-	url="$GH_REPO/archive/v${version}.tar.gz"
+	arch_os="$(guess_asset)"
+	url="$GH_REPO/releases/download/v${version}/argc-v${version}-${arch_os}.tar.gz"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
